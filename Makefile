@@ -56,4 +56,4 @@ $(OBJ):
 clean:
 	rm -f $(SRC)/*.lst
 	rm -f $(OBJ)/*.o os sched mem
-	rm -r $(OBJ)
+	rm -rf $(OBJ)

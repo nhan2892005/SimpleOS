@@ -1,11 +1,13 @@
 /*
- * Copyright (C) 2025 pdnguyen of the HCMC University of Technology
+ * Copyright (C) 2025 pdnguyen of HCMC University of Technology VNU-HCM
  */
-/*
- * Source Code License Grant: The authors hereby grant to Licensee 
- * personal permission to use and modify the Licensed Source Code 
+
+/* Sierra release
+ * Source Code License Grant: The authors hereby grant to Licensee
+ * personal permission to use and modify the Licensed Source Code
  * for the sole purpose of studying while attending the course CO2018.
  */
+
 #include "common.h"
 
 #define SYSMEM_MAP_OP 1

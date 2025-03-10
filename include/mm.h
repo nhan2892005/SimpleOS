@@ -151,7 +151,8 @@ int MEMPHY_read(struct memphy_struct * mp, int addr, BYTE *value);
 int MEMPHY_write(struct memphy_struct * mp, int addr, BYTE data);
 int MEMPHY_dump(struct memphy_struct * mp);
 int init_memphy(struct memphy_struct *mp, int max_size, int randomflg);
-/* DEBUG */
+
+/* print list */
 int print_list_fp(struct framephy_struct *fp);
 int print_list_rg(struct vm_rg_struct *rg);
 int print_list_vma(struct vm_area_struct *rg);
