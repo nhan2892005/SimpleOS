@@ -4,3 +4,4 @@ m_output/
 .vscode/
 *ganttchart.png
 os
+*.sh
