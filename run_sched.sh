@@ -15,3 +15,15 @@ echo "Running sched_1"
 python3 ganttchart.py m_output sched_1.output
 python3 ganttchart.py output sched_1.output
 echo "Done"
+
+echo "Running os_1_singleCPU_mlq"
+./os os_1_singleCPU_mlq > m_output/os_1_singleCPU_mlq.output
+python3 ganttchart.py m_output os_1_singleCPU_mlq.output
+python3 ganttchart.py output os_1_singleCPU_mlq.output
+echo "Done"
+
+echo "Running os_1_singleCPU_mlq_paging"
+./os os_1_singleCPU_mlq_paging > m_output/os_1_singleCPU_mlq_paging.output
+python3 ganttchart.py m_output os_1_singleCPU_mlq_paging.output
+python3 ganttchart.py output os_1_singleCPU_mlq_paging.output
+echo "Done"

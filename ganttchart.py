@@ -91,7 +91,7 @@ def merge_schedule(schedule):
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: python ganttchart.py folder path_to_log_file")
+        #print("Usage: python ganttchart.py folder path_to_log_file")
         sys.exit(1)
     
     folder = sys.argv[1]
@@ -109,9 +109,10 @@ def main():
     for cpu, schedule in cpu_schedule.items():
         cpu_intervals[cpu] = merge_schedule(schedule)
     
-    print("CPU Schedules (intervals):")
+    #print("CPU Schedules (intervals):")
     for cpu, intervals in cpu_intervals.items():
-        print(f"CPU {cpu}: {intervals}")
+        #print(f"CPU {cpu}: {intervals}")
+        pass
     
     # Định nghĩa màu sắc cho các process; trạng thái idle (None) dùng màu lightgray
     process_colors = {
