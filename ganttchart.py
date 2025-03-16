@@ -13,8 +13,8 @@ def parse_log(filename):
       - "Processed ... has finished" hoặc "stopped": CPU chuyển về trạng thái idle (None).
     """
     # Giả sử hệ thống có 2 CPU (CPU 0 và CPU 1); có thể mở rộng nếu cần
-    cpu_state = {0: None, 1: None}
-    cpu_schedule = {0: {}, 1: {}}
+    cpu_state = {0: None, 1: None, 2: None, 3: None}
+    cpu_schedule = {0: {}, 1: {}, 2: {}, 3: {}}
     current_time = None
 
     # Các pattern regex
@@ -119,6 +119,13 @@ def main():
         1: 'tab:blue',
         2: 'tab:orange',
         3: 'tab:green',
+        4: 'tab:red',
+        5: 'tab:purple',
+        6: 'tab:brown',
+        7: 'tab:pink',
+        8: 'tab:olive',
+        9: 'tab:cyan',
+        10: 'tab:gray',
         None: 'lightgray'
     }
     
