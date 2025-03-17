@@ -1,0 +1,4 @@
+.vscode/
+os
+obj/
+syscalltbl.lst
