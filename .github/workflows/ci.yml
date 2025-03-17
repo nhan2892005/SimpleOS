@@ -1,0 +1,73 @@
+name: CI/CD for C Project
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  skip-tests:
+    if: ${{ github.event.pull_request.head.ref == 'test' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inform Skip Tests
+        run: |
+          echo "Pull request from branch 'test'. Skipping build and tests. Merging directly."
+
+  build-and-test:
+    if: ${{ github.event.pull_request.head.ref != 'test' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Build Project
+        run: |
+          echo "Running make..."
+          make
+          echo "Running run.sh..."
+          ./run.sh
+
+      - name: Determine Test Command from PR Title
+        id: get_test
+        run: |
+          echo "PR Title: ${{ github.event.pull_request.title }}"
+          # Lấy phần đầu tiên trước dấu '-' làm tên test
+          TEST_NAME=$(echo "${{ github.event.pull_request.title }}" | cut -d '-' -f 1)
+          echo "Extracted test name: $TEST_NAME"
+          echo "::set-output name=test_name::$TEST_NAME"
+
+      - name: Run Test Based on PR Title
+        run: |
+          TEST_NAME="${{ steps.get_test.outputs.test_name }}"
+          echo "Running tests for: $TEST_NAME"
+          case "$TEST_NAME" in
+            Scheduler)
+              echo "Executing: ./test.sh scheduler"
+              ./test.sh scheduler
+              ;;
+            MM_ALLOC)
+              echo "Executing: ./test.sh memo_manage alloc"
+              ./test.sh memo_manage alloc
+              ;;
+            MM_FREE)
+              echo "Executing: ./test.sh memo_manage free"
+              ./test.sh memo_manage free
+              ;;
+            MM_READ)
+              echo "Executing: ./test.sh memo_manage read"
+              ./test.sh memo_manage read
+              ;;
+            MM_WRITE)
+              echo "Executing: ./test.sh memo_manage write"
+              ./test.sh memo_manage write
+              ;;
+            SYSCALL)
+              echo "Executing: ./test.sh syscall"
+              ./test.sh syscall
+              ;;
+            *)
+              echo "No valid test found for '$TEST_NAME'. Failing the job."
+              exit 1
+              ;;
+          esac
+        shell: bash
