@@ -160,10 +160,26 @@ int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
 
 int MEMPHY_dump(struct memphy_struct *mp)
 {
-  /*TODO dump memphy contnt mp->storage
+   /*TODO dump memphy contnt mp->storage
    *     for tracing the memory content
    */
-   return 0;
+    if (mp == NULL) {
+        printf("MEMPHY_dump: memphy_struct is NULL.\n");
+        return -1;
+    }
+    
+    printf("===== PHYSICAL MEMORY DUMP =====\n");
+    printf("MEMPHY_dump: Dumping memory (max size = %d bytes):\n", mp->maxsz);
+    for (int i = 0; i < mp->maxsz; i++) {
+        if (mp->storage[i] != 0) {
+            // In ra địa chỉ và giá trị dưới dạng hex
+            printf("BYTE %08x: %d\n", i, mp->storage[i]);
+            printf("Addr %05d: 0x%02x\n", i, (unsigned char)mp->storage[i]);
+        }
+    }
+    printf("===== PHYSICAL MEMORY END-DUMP =====\n");
+    //printf("================================================================\n");
+    return 0;
 }
 
 int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn)
