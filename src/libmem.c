@@ -460,9 +460,7 @@ int __read(struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
   if (currg == NULL || cur_vma == NULL) /* Invalid memory identify */
     return -1;
 
-  pg_getval(caller->mm, currg->rg_start + offset, data, caller);
-
-  return 0;
+  return pg_getval(caller->mm, currg->rg_start + offset, data, caller);
 }
 
 /*libread - PAGING-based read a region memory */
@@ -486,6 +484,7 @@ int libread(
   //destination 
   pthread_mutex_lock(&log_msg);
   printf("===== PHYSICAL MEMORY AFTER READING =====\n");
+  printf("destination=%d\n", *destination);
 #ifdef IODUMP
   printf("read region=%d offset=%d value=%d\n", source, offset, data);
 #ifdef PAGETBL_DUMP
@@ -527,6 +526,7 @@ int libwrite(
     uint32_t destination, // Index of destination register
     uint32_t offset)
 {
+  int val = __write(proc, 0, destination, offset, data);
   pthread_mutex_lock(&log_msg);
   printf("===== PHYSICAL MEMORY AFTER WRITING =====\n");
 #ifdef IODUMP
@@ -541,7 +541,7 @@ int libwrite(
   printf("================================================================\n");
   pthread_mutex_unlock(&log_msg);
 
-  return __write(proc, 0, destination, offset, data);
+  return val;
 }
 
 /*free_pcb_memphy - collect all memphy of pcb
