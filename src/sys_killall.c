@@ -12,6 +12,8 @@
 #include "syscall.h"
 #include "stdio.h"
 #include "libmem.h"
+#include "queue.h"
+#include <string.h>
 
 int __sys_killall(struct pcb_t *caller, struct sc_regs* regs)
 {
@@ -33,7 +35,8 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs* regs)
     }
     printf("The procname retrieved from memregionid %d is \"%s\"\n", memrg, proc_name);
 
-    /* TODO: Traverse proclist to terminate the proc
+    /* 
+    TODO: Traverse proclist to terminate the proc
      *       stcmp to check the process match proc_name
      */
     //caller->running_list
@@ -43,6 +46,45 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs* regs)
      *       all processes with given
      *        name in var proc_name
      */
+    if (caller->running_list != NULL) {
+        int j = 0;
+        while (j < caller->running_list->size) {
+            struct pcb_t *proc = caller->running_list->proc[j];
+            if (strcmp(proc->path, proc_name) == 0) {
+                printf("Killing process PID=%d, name=\"%s\" from running_list\n", proc->pid, proc->path);
+                // Giả lập kill: loại bỏ process khỏi danh sách bằng cách shift các phần tử phía sau lên
+                for (int k = j; k < caller->running_list->size - 1; k++) {
+                    caller->running_list->proc[k] = caller->running_list->proc[k + 1];
+                }
+                caller->running_list->size--;
+                // Không tăng j vì phần tử mới chuyển lên vị trí j cần được kiểm tra lại
+            } else {
+                j++;
+            }
+        }
+    }
+
+#ifdef MLQ_SCHED
+    if (caller->mlq_ready_queue != NULL) {
+        for (int p = 0; p < MAX_PRIO; p++) {
+            struct queue_t *q = &caller->mlq_ready_queue[p];
+            int j = 0;
+            while (j < q->size) {
+                struct pcb_t *proc = q->proc[j];
+                if (strcmp(proc->path, proc_name) == 0) {
+                    printf("Killing process PID=%d, name=\"%s\" from mlq_ready_queue[%d]\n", proc->pid, proc->path, p);
+                    for (int k = j; k < q->size - 1; k++) {
+                        q->proc[k] = q->proc[k + 1];
+                    }
+                    q->size--;
+                    // Không tăng j vì cần kiểm tra lại vị trí j mới
+                } else {
+                    j++;
+                }
+            }
+        }
+    }
+#endif
 
     return 0; 
 }
