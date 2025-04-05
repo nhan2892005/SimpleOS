@@ -47,10 +47,48 @@ void init_scheduler(void) {
  *  State representation   prio = 0 .. MAX_PRIO, curr_slot = 0..(MAX_PRIO - prio)
  */
 struct pcb_t * get_mlq_proc(void) {
-	struct pcb_t * proc = NULL;
+	
 	/*TODO: get a process from PRIORITY [ready_queue].
 	 * Remember to use lock to protect the queue.
 	 * */
+	struct pcb_t * proc = NULL;
+	int all_empty = 1;			//kiem tra tat ca queue co rong k
+	int all_slot_empty = 1;		//kiem tra tat ca queue co het slot k
+
+	for (int prio = 0; prio < MAX_PRIO; prio++) {
+		if (!empty(&mlq_ready_queue[prio])) {
+			all_empty = 0;
+			if (slot[prio] > 0) {
+				all_slot_empty = 0;
+				proc = dequeue(&mlq_ready_queue[prio]);
+				pthread_mutex_unlock(&queue_lock);
+				return proc;
+			}
+		}
+	}
+
+	//kiem tra cac tien trinh da chay het chua
+	if (all_empty) {
+		pthread_mutex_unlock(&queue_lock);
+		return NULL;
+	}
+
+	//neu con tien trinh nhung het slot, reset slot va chay lai
+	if (all_slot_empty) {
+		// Reset slot 
+		for (int i = 0; i < MAX_PRIO; i++) {
+			slot[i] = MAX_PRIO - i;
+		}
+		// chay lai
+		for (int prio = 0; prio < MAX_PRIO; prio++) {
+			if (!empty(&mlq_ready_queue[prio])) {
+				proc = dequeue(&mlq_ready_queue[prio]);
+				break;
+			}
+		}
+	}
+
+	pthread_mutex_unlock(&queue_lock);  
 	return proc;	
 }
 
@@ -96,6 +134,15 @@ struct pcb_t * get_proc(void) {
 	/*TODO: get a process from [ready_queue].
 	 * Remember to use lock to protect the queue.
 	 * */
+
+	pthread_mutex_lock(&queue_lock); 
+
+    	if (!empty(&ready_queue)) {
+        	proc = dequeue(&ready_queue);
+    	}
+
+    	pthread_mutex_unlock(&queue_lock); 
+	
 	return proc;
 }
 
