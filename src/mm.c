@@ -90,18 +90,8 @@ int vmap_page_range(struct pcb_t *caller,           // process call
   int pgit = 0;
   int pgn = PAGING_PGN(addr);
 
-  /* TODO: update the rg_end and rg_start of ret_rg 
-  //ret_rg->rg_end =  ....
-  //ret_rg->rg_start = ...
-  //ret_rg->vmaid = ...
-  */
   ret_rg->rg_start = addr;
   ret_rg->rg_end   = addr + pgnum * PAGING_PAGESZ;
-
-  /* TODO map range of frame to address space
-   *      [addr to addr + pgnum*PAGING_PAGESZ
-   *      in page table caller->mm->pgd[]
-   */
 
   for (pgit = 0; pgit < pgnum; pgit++) {
     int curr_page = pgn + pgit;
@@ -137,18 +127,12 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
   int pgit, fpn;
   struct framephy_struct *newfp_str = malloc(sizeof(struct framephy_struct));
 
-  /* TODO: allocate the page 
-  //caller-> ...
-  //frm_lst-> ...
-  */
   struct framephy_struct *head = NULL;  // Đầu danh sách các frame đã cấp phát
   *frm_lst = NULL;
 
 
   for (pgit = 0; pgit < req_pgnum; pgit++)
   {
-  /* TODO: allocate the page 
-   */
     if (MEMPHY_get_freefp(caller->mram, &fpn) == 0)
     {
       newfp_str->fpn = fpn;
@@ -265,14 +249,12 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
   struct vm_rg_struct *first_rg = init_vm_rg(vma0->vm_start, vma0->vm_end);
   enlist_vm_rg_node(&vma0->vm_freerg_list, first_rg);
 
-  /* TODO update VMA0 next */
-  // vma0->next = ...
   vma0->vm_next = NULL;  // Không có VMA kế tiếp nên gán NULL
 
   /* Point vma owner backward */
   vma0->vm_mm = mm; 
 
-  /* TODO: update mmap */
+  /* update mmap */
   mm->mmap = vma0;  // Gán VMA0 làm đầu tiên của memory mapping
 
   return 0;
