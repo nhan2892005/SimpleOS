@@ -99,6 +99,10 @@ struct pcb_t
 #endif
 	struct page_table_t *page_table; // Page table
 	uint32_t bp;			 // Break pointer
+
+	uint32_t burst_time;
+	uint32_t arrival_time;
+	uint32_t remaining_time; // For SRTF
 };
 
 #endif

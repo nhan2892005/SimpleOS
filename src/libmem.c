@@ -218,6 +218,9 @@ int liballoc(struct pcb_t *proc, uint32_t size, uint32_t reg_index)
 int libfree(struct pcb_t *proc, uint32_t reg_index)
 {
   /* TODO Implement free region */
+  // check proc null
+  if (!proc || reg_index >= PAGING_MAX_SYMTBL_SZ)
+    return -1;
   int val = __free(proc, 0, reg_index);
   if (val == 0) {
     pthread_mutex_lock(&log_msg);

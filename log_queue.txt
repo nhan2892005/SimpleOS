@@ -1,0 +1,15 @@
+
+[33m=== Running test: empty queue ===[0m
+[32m[PASS][0m Test: empty - NULL queue
+[32m[PASS][0m Test: empty - Empty queue
+[32m[PASS][0m Test: empty - Non-empty queue
+
+[33m=== Running test: enqueue ===[0m
+[32m[PASS][0m Test: enqueue - Empty queue
+[32m[PASS][0m Test: enqueue - Non-empty queue
+[32m[PASS][0m Test: enqueue - Full queue
+
+[33m=== Running test: dequeue ===[0m
+[32m[PASS][0m Test: dequeue - Empty queue
+[32m[PASS][0m Test: dequeue - Single element queue
+[32m[PASS][0m Test: dequeue - Multiple element queue (priority)

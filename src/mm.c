@@ -27,15 +27,24 @@ int init_pte(uint32_t *pte,
       /* Valid setting with FPN */
       SETBIT(*pte, PAGING_PTE_PRESENT_MASK);
       CLRBIT(*pte, PAGING_PTE_SWAPPED_MASK);
-      CLRBIT(*pte, PAGING_PTE_DIRTY_MASK);
+
+      if (drt) {
+        SETBIT(*pte, PAGING_PTE_DIRTY_MASK);
+      } else {
+        CLRBIT(*pte, PAGING_PTE_DIRTY_MASK);
+      }
 
       SETVAL(*pte, fpn, PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT);
     }
     else
     { // page swapped
       SETBIT(*pte, PAGING_PTE_PRESENT_MASK);
+      if (drt) {
+        SETBIT(*pte, PAGING_PTE_DIRTY_MASK);
+      } else {
+        CLRBIT(*pte, PAGING_PTE_DIRTY_MASK);
+      }
       SETBIT(*pte, PAGING_PTE_SWAPPED_MASK);
-      CLRBIT(*pte, PAGING_PTE_DIRTY_MASK);
 
       SETVAL(*pte, swptyp, PAGING_PTE_SWPTYP_MASK, PAGING_PTE_SWPTYP_LOBIT);
       SETVAL(*pte, swpoff, PAGING_PTE_SWPOFF_MASK, PAGING_PTE_SWPOFF_LOBIT);
@@ -161,7 +170,7 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
     }
   }
   *frm_lst = head;
-  return 0;
+  return req_pgnum;
 }
 
 /*
@@ -217,18 +226,26 @@ int __swap_cp_page(struct memphy_struct *mpsrc, int srcfpn,
 {
   int cellidx;
   int addrsrc, addrdst;
+  int ret;
+  
   for (cellidx = 0; cellidx < PAGING_PAGESZ; cellidx++)
   {
     addrsrc = srcfpn * PAGING_PAGESZ + cellidx;
     addrdst = dstfpn * PAGING_PAGESZ + cellidx;
 
     BYTE data;
-    MEMPHY_read(mpsrc, addrsrc, &data);
-    MEMPHY_write(mpdst, addrdst, data);
+    ret = MEMPHY_read(mpsrc, addrsrc, &data);
+    if (ret != 0)
+      return ret;  // Trả về lỗi nếu đọc không thành công
+
+    ret = MEMPHY_write(mpdst, addrdst, data);
+    if (ret != 0)
+      return ret;  // Trả về lỗi nếu ghi không thành công
   }
 
   return 0;
 }
+
 
 /*
  *Initialize a empty Memory Management instance
