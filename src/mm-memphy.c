@@ -100,8 +100,10 @@ int MEMPHY_write(struct memphy_struct *mp, int addr, BYTE data)
    if (mp == NULL)
       return -1;
 
-   if (mp->rdmflg)
+   if (mp->rdmflg) {
       mp->storage[addr] = data;
+      // get free frame and put into used list
+   }
    else /* Sequential access device */
       return MEMPHY_seq_write(mp, addr, data);
 

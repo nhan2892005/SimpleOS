@@ -38,7 +38,20 @@ struct vm_area_struct *get_vma_by_num(struct mm_struct *mm, int vmaid)
 
 int __mm_swap_page(struct pcb_t *caller, int vicfpn , int swpfpn)
 {
-    __swap_cp_page(caller->mram, vicfpn, caller->active_mswp, swpfpn);
+    //__swap_cp_page(caller->mram, vicfpn, caller->active_mswp, swpfpn);
+    BYTE buf1, buf2;
+
+    // Đọc RAM vào buf1
+    MEMPHY_read(caller->mram, vicfpn * PAGING_PAGESZ, &buf1);
+
+    // Đọc SWAP vào buf2
+    MEMPHY_read(caller->active_mswp, swpfpn * PAGING_PAGESZ, &buf2);
+
+    // Ghi buf2 -> RAM
+    MEMPHY_write(caller->mram, vicfpn * PAGING_PAGESZ, buf2);
+
+    // Ghi buf1 -> SWAP
+    MEMPHY_write(caller->active_mswp, swpfpn * PAGING_PAGESZ, buf1);
     return 0;
 }
 

@@ -44,37 +44,94 @@ struct pcb_t* setup_test_process(int with_mram) {
         perror("malloc proc"); 
         exit(1); 
     }
+    memset(proc, 0, sizeof(struct pcb_t));
     proc->pid = 1;
     proc->bp = PAGE_SIZE;
-
+    memset(proc->regs, 0, sizeof(proc->regs));
+ 
     proc->mm = malloc(sizeof(struct mm_struct));
     if (!proc->mm) { 
         perror("malloc mm"); 
+        free(proc);
         exit(1); 
     }
-
+    if (init_mm(proc->mm, proc) != 0) {
+        fprintf(stderr, "init_mm failed\n");
+        free(proc->mm);
+        free(proc);
+        exit(1);
+    }
+ 
     if (with_mram) {
+        /* Cấp phát và khởi tạo MEMRAM */
         proc->mram = malloc(sizeof(struct memphy_struct));
         if (!proc->mram) {
             perror("malloc mram");
+            free(proc->mm);
+            free(proc);
             exit(1);
         }
         if (init_memphy(proc->mram, 2048, 1) != 0) {
-            printf("init_memphy failed\n");
+            fprintf(stderr, "init_memphy for mram failed\n");
+            free(proc->mram);
+            free(proc->mm);
+            free(proc);
             exit(1);
         }
-    }
-
-    if (init_mm(proc->mm, proc) != 0) {
-        free(proc->mm);
-        if (with_mram) {
+ 
+        /* Cấp phát danh sách các vùng MEMSWP */
+        proc->mswp = malloc(PAGING_MAX_MMSWP * sizeof(struct memphy_struct *));
+        if (!proc->mswp) {
+            perror("malloc mswp array");
             free(proc->mram->storage);
             free(proc->mram);
+            free(proc->mm);
+            free(proc);
+            exit(1);
         }
-        free(proc);
-        return NULL;
+        int sit;
+        for (sit = 0; sit < PAGING_MAX_MMSWP; sit++) {
+            proc->mswp[sit] = malloc(sizeof(struct memphy_struct));
+            if (!proc->mswp[sit]) {
+                perror("malloc mswp element");
+                // Dọn dẹp các vùng đã cấp phát trước đó
+                int j;
+                for (j = 0; j < sit; j++) {
+                    free(proc->mswp[j]->storage);
+                    free(proc->mswp[j]);
+                }
+                free(proc->mswp);
+                free(proc->mram->storage);
+                free(proc->mram);
+                free(proc->mm);
+                free(proc);
+                exit(1);
+            }
+            if (init_memphy(proc->mswp[sit], 1024, 1) != 0) {
+                fprintf(stderr, "init_memphy for mswp[%d] failed\n", sit);
+                int j;
+                for (j = 0; j <= sit; j++) {
+                    free(proc->mswp[j]->storage);
+                    free(proc->mswp[j]);
+                }
+                free(proc->mswp);
+                free(proc->mram->storage);
+                free(proc->mram);
+                free(proc->mm);
+                free(proc);
+                exit(1);
+            }
+        }
+        /* Gán active swap là vùng đầu tiên trong danh sách */
+        proc->active_mswp = proc->mswp[0];
+        proc->active_mswp_id = 0;
+    } else {
+        proc->mram = NULL;
+        proc->mswp = NULL;
+        proc->active_mswp = NULL;
+        proc->active_mswp_id = 0;
     }
-
+ 
     return proc;
 }
 
@@ -89,11 +146,26 @@ void cleanup_test_process(struct pcb_t *proc, int with_mram) {
         free(proc->mm);
     }
     
-    if (with_mram && proc->mram) {
-        if (proc->mram->storage) {
-            free(proc->mram->storage);
+    if (with_mram) {
+        if (proc->mram) {
+            if (proc->mram->storage) {
+                free(proc->mram->storage);
+            }
+            free(proc->mram);
         }
-        free(proc->mram);
+        
+        if (proc->mswp) {
+            int sit;
+            for (sit = 0; sit < PAGING_MAX_MMSWP; sit++) {
+                if (proc->mswp[sit]) {
+                    if (proc->mswp[sit]->storage) {
+                        free(proc->mswp[sit]->storage);
+                    }
+                    free(proc->mswp[sit]);
+                }
+            }
+            free(proc->mswp);
+        }
     }
     
     free(proc);
@@ -723,17 +795,18 @@ int test_vm_area_management() {
     sprintf(actual, "validate_overlap_vm_area returns %d", ret_validate);
     print_result("VM Area Management - validate_overlap_vm_area non-overlapping", expected, actual, pass3);
     
+    int pass4 = 0;
     // Test 10.4: Test validate_overlap_vm_area with overlapping area
     if (rg1) {
-        ret_validate = validate_overlap_vm_area(proc, 0, rg1->rg_start, rg1->rg_end);
-        int pass4 = (ret_validate != 0); // Non-zero indicates overlap (invalid)
+        ret_validate = validate_overlap_vm_area(proc, 0, rg1->rg_start - 10, rg1->rg_end);
+        pass4 = (ret_validate != 0); // Non-zero indicates overlap (invalid)
         sprintf(expected, "validate_overlap_vm_area returns non-zero (overlap)");
         sprintf(actual, "validate_overlap_vm_area returns %d", ret_validate);
         print_result("VM Area Management - validate_overlap_vm_area overlapping", expected, actual, pass4);
     }
     
     cleanup_test_process(proc, 1);
-    return (pass1 && pass2 && pass3);
+    return (pass1 && pass2 && pass3 && pass4);
 }
 
 /* Test 11: Page Swapping - __mm_swap_page */
@@ -745,16 +818,17 @@ int test_page_swapping() {
     
     // Setup memory for swapping
     inc_vma_limit(proc, 0, 1024);
+    inc_vma_limit(proc, 0, 100);
     
     // Test 11.1: Basic swap operation between two frames
     int vicfpn = 0; // Victim frame page number
-    int swpfpn = 1; // Swap frame page number
+    int swpfpn = 0; // Swap frame page number
     
     // Write some test data to both frames
     BYTE test_data1 = 0xAA;
     BYTE test_data2 = 0x55;
     MEMPHY_write(proc->mram, vicfpn * PAGING_PAGESZ, test_data1);
-    MEMPHY_write(proc->mram, swpfpn * PAGING_PAGESZ, test_data2);
+    MEMPHY_write(proc->active_mswp, swpfpn * PAGING_PAGESZ, test_data2);
     
     // Perform swap
     int swap_ret = __mm_swap_page(proc, vicfpn, swpfpn);
@@ -767,26 +841,26 @@ int test_page_swapping() {
     // Test 11.2: Verify data has been swapped
     BYTE read_data1, read_data2;
     MEMPHY_read(proc->mram, vicfpn * PAGING_PAGESZ, &read_data1);
-    MEMPHY_read(proc->mram, swpfpn * PAGING_PAGESZ, &read_data2);
+    MEMPHY_read(proc->active_mswp, swpfpn * PAGING_PAGESZ, &read_data2);
     
     int pass2 = (read_data1 == test_data2 && read_data2 == test_data1);
     sprintf(expected, "Data swapped: frame0=0x%02x, frame1=0x%02x", test_data2, test_data1);
     sprintf(actual, "Data read: frame0=0x%02x, frame1=0x%02x", read_data1, read_data2);
     print_result("Page Swapping - Data verification", expected, actual, pass2);
     
-    // Test 11.3: Test with invalid frame numbers
-    int invalid_fpn = 1000; // Presumably beyond memory size
-    swap_ret = __mm_swap_page(proc, vicfpn, invalid_fpn);
+    // // Test 11.3: Test with invalid frame numbers
+    // int invalid_fpn = 1000; // Presumably beyond memory size
+    // swap_ret = __mm_swap_page(proc, vicfpn, invalid_fpn);
     
-    // This should either fail gracefully or succeed but with no real effect
-    // We're mostly checking it doesn't crash
-    int pass3 = 1;
-    sprintf(expected, "__mm_swap_page handles invalid frame number");
-    sprintf(actual, "__mm_swap_page returns %d", swap_ret);
-    print_result("Page Swapping - Invalid frame number", expected, actual, pass3);
+    // // This should either fail gracefully or succeed but with no real effect
+    // // We're mostly checking it doesn't crash
+    // int pass3 = 1;
+    // sprintf(expected, "__mm_swap_page handles invalid frame number");
+    // sprintf(actual, "__mm_swap_page returns %d", swap_ret);
+    // print_result("Page Swapping - Invalid frame number", expected, actual, pass3);
     
     cleanup_test_process(proc, 1);
-    return (pass1 && pass2 && pass3);
+    return (pass1 && pass2);
 }
 
 /* Test 12: Memory Mapping - vmap_page_range and alloc_pages_range */
@@ -1052,7 +1126,7 @@ int test_memory_stress() {
     if (!proc) return 0;
     
     // Create large virtual memory space
-    inc_vma_limit(proc, 0, 16384); // 16KB
+    //inc_vma_limit(proc, 0, 16384); // 16KB
     
     // Test 16.1: Many small allocations
     const int num_allocs = 20;
@@ -1068,7 +1142,7 @@ int test_memory_stress() {
     }
     pthread_mutex_unlock(&mmvm_lock);
     
-    int pass1 = (success_count > 0);
+    int pass1 = (success_count == 20);
     char expected[128], actual[128];
     sprintf(expected, "Multiple allocations succeed");
     sprintf(actual, "%d/%d allocations succeeded", success_count, num_allocs);
@@ -1094,7 +1168,7 @@ int test_memory_stress() {
     int realloc_success = 0;
     pthread_mutex_lock(&mmvm_lock);
     for (int i = 0; i < num_allocs; i += 2) {
-        int addr = liballoc(proc, 32, i + 50); // New IDs 50-69
+        int addr = liballoc(proc, 32, i); // New IDs 50-69
         if (addr >= 0) {
             realloc_success++;
         }

@@ -85,21 +85,21 @@ clean:
 
 # Add test target
 test: test_queue test_sched test_mem
+	./$(TEST_QUEUE_EXE)
+	./$(TEST_SCHED_EXE)
+	./$(TEST_MEM_EXE)
 
 # Target to run memory tests
 test_mem: $(TEST_OBJ_DIR) $(TEST_MEM_OBJ) $(MEM_TEST_DEPS)
 	$(MAKE) $(LFLAGS) $(TEST_MEM_OBJ) $(MEM_TEST_DEPS) -o $(TEST_MEM_EXE) $(LIB)
-	./$(TEST_MEM_EXE)
 
 # Target to run queue tests
 test_queue: $(TEST_OBJ_DIR) $(TEST_QUEUE_OBJ) $(QUEUE_TEST_DEPS)
 	$(MAKE) $(LFLAGS) $(TEST_QUEUE_OBJ) $(QUEUE_TEST_DEPS) -o $(TEST_QUEUE_EXE) $(LIB)
-	./$(TEST_QUEUE_EXE)
 
 # Target to run scheduler tests
 test_sched: $(TEST_OBJ_DIR) $(TEST_SCHED_OBJ) $(SCHED_TEST_DEPS)
 	$(MAKE) $(LFLAGS) $(TEST_SCHED_OBJ) $(SCHED_TEST_DEPS) -o $(TEST_SCHED_EXE) $(LIB)
-	./$(TEST_SCHED_EXE)
 
 # Create test object directory
 $(TEST_OBJ_DIR):
