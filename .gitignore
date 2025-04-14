@@ -1,0 +1,6 @@
+.vscode/
+os
+obj/
+syscalltbl.lst
+m_output
+*_error
