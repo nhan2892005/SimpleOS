@@ -1,6 +1,7 @@
-.vscode/
-os
 obj/
 syscalltbl.lst
-m_output
-*_error
+m_output/
+.vscode/
+*ganttchart.png
+os
+test-*
