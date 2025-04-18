@@ -5,3 +5,5 @@ m_output/
 *ganttchart.png
 os
 test-*
+log_*.txt
+test_*
