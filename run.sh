@@ -1,3 +1,5 @@
+mkdir -p m_output
+
 echo "Running sched"
 ./os sched > m_output/sched.output
 python3 ganttchart.py m_output sched.output
