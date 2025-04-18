@@ -25,18 +25,82 @@
 ## 3. Cấu trúc thư mục
 ```
 SimpleOS/
-├── Makefile               # Tập tin cấu hình build
-├── README.md              # Tài liệu hướng dẫn (hiện tại)
-├── docs/                  # Tài liệu bài tập và yêu cầu
-├── include/               # Header files
-├── src/                   # Mã nguồn chính
-├── test/                  # Test cases cho queue, scheduler, memory
-├── input/                 # Các file cấu hình workload
-├── output/                # Kết quả sau khi chạy (biểu đồ Gantt)
-├── m_output/              # Kết quả chạy (đầu ra thô)
-├── obj/                   # Thư mục chứa file .o
-├── run.sh                 # Script chạy toàn bộ workloads
-└── ganttchart.py          # Script vẽ biểu đồ Gantt
+.
+├── Makefile
+├── README.md
+├── docs
+│   └── assignment_SystemCall_Hk251.pdf
+├── ganttchart.py
+├── include
+│   ├── bitops.h
+│   ├── common.h
+│   ├── cpu.h
+│   ├── libmem.h
+│   ├── loader.h
+│   ├── mem.h
+│   ├── mm.h
+│   ├── os-cfg.h
+│   ├── os-mm.h
+│   ├── queue.h
+│   ├── sched.h
+│   ├── syscall.h
+│   └── timer.h
+├── input
+│   ├── os_0_mlq_paging
+│   ├── os_1_mlq_paging
+│   ├── os_1_mlq_paging_small_1K
+│   ├── os_1_mlq_paging_small_4K
+│   ├── os_1_singleCPU_mlq
+│   ├── os_1_singleCPU_mlq_paging
+│   ├── os_sc
+│   ├── os_syscall
+│   ├── os_syscall_list
+│   ├── proc
+│   ├── sched
+│   ├── sched_0
+│   └── sched_1
+├── os
+├── output
+│   ├── chart
+│   ├── os_0_mlq_paging.output
+│   ├── os_1_mlq_paging.output
+│   ├── os_1_mlq_paging_small_1K.output
+│   ├── os_1_mlq_paging_small_4K.output
+│   ├── os_1_singleCPU_mlq.output
+│   ├── os_1_singleCPU_mlq_paging.output
+│   ├── os_sc.output
+│   ├── os_syscall.output
+│   ├── os_syscall_list.output
+│   ├── sched.output
+│   ├── sched_0.output
+│   └── sched_1.output
+├── run.sh
+├── src
+│   ├── cpu.c
+│   ├── libmem.c
+│   ├── libstd.c
+│   ├── loader.c
+│   ├── mem.c
+│   ├── mm-memphy.c
+│   ├── mm-vm.c
+│   ├── mm.c
+│   ├── os.c
+│   ├── paging.c
+│   ├── queue.c
+│   ├── sched.c
+│   ├── sys_killall.c
+│   ├── sys_listsyscall.c
+│   ├── sys_mem.c
+│   ├── syscall.c
+│   ├── syscall.tbl
+│   ├── syscalltbl.lst
+│   ├── syscalltbl.sh
+│   └── timer.c
+├── test
+│   ├── testqueue.c
+│   ├── testsched.c
+│   └── testvmem.c
+└── test.sh
 ```
 
 ## 4. Yêu cầu hệ thống
@@ -96,6 +160,7 @@ make && ./run.sh
   make test_sched && ./test_sched
   make test_mem && ./test_memory
   ```
+
 
 ---
 
