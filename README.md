@@ -1,11 +1,17 @@
-**SimpleOS**
+<div align="center">
 
-## 1. Mô tả dự án
+  <div>
+    <img src="https://img.shields.io/badge/Language-C-blue.svg?logo=c%2B%2B&style=for-the-badge" alt="C">
+  </div>
+
+  <h3 align="center">Assignment Operating System: SimpleOS</h3>
+</div>
+
+## 1. 📋 Mô tả dự án
 **SimpleOS** mô phỏng cơ chế quản lý tài nguyên và hệ thống call trong một hệ điều hành đơn giản, bao gồm:
 - **Scheduler**: đa cấp ưu tiên (Multi-Level Queue).  
 - **Memory Management**: Vùng nhớ ảo (vma), phân trang (paging) và quản lý cấp phát/giải phóng bộ nhớ.  
-- **System Call**: các cuộc gọi hệ thống cơ bản (list, kill, mem, ...).  
-- **Gantt Chart**: sinh biểu đồ Gantt cho job scheduling.
+- **System Call**: các cuộc gọi hệ thống cơ bản (list, kill, mem, ...).
 
 ## 2. Thành viên nhóm và phân công
 | Họ và tên             | Mã SV    | Nhóm  | Nhiệm vụ chính                                      |
@@ -14,7 +20,7 @@
 | Cao Thành Lộc         | 2311942  | L02   | Implement `read`/`write` trong Memory Management    |
 | Nguyễn Ngọc Ngữ       | 2312401  | L02   | Implement phần System Call                          |
 | Phan Đức Nhã          | 2312410  | L07   | Viết báo cáo và tóm tắt mã nguồn                    |
-| Đỗ Quang Long         | 2311896  | L02   | Implement Scheduler                                  |
+| Đỗ Quang Long         | 2311896  | L02   | Implement Scheduler                                 |
 
 ## 3. Cấu trúc thư mục
 ```
