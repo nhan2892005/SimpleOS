@@ -1,73 +1,68 @@
+#!/bin/bash
+
+# Biến đếm số lần thành công và thất bại
+success_count=0
+error_count=0
+
+run_command() {
+    local name=$1
+    echo "Running $name"
+
+    # Chạy lệnh ./os với timeout 5 giây
+    timeout 5s ./os "$name" > "m_output/$name.output" 2> "m_output/$name.error"
+    if [ $? -eq 124 ]; then
+        echo "Reach Runtime Limit (5 seconds)" >> "m_output/$name.error"
+        echo -e "\e[31mError: $name -> Reach Runtime Limit (5 seconds)\e[0m"  # Màu đỏ
+        ((error_count++))
+    else
+        # Kiểm tra lỗi của Python script
+        python3 ganttchart.py m_output "$name.output" 2> "m_output/$name.gantt_error"
+        if [ $? -ne 0 ]; then
+            echo -e "\e[31mPython Error: $name\e[0m"  # Màu đỏ
+            cat "m_output/$name.gantt_error"
+            ((error_count++))
+        else
+            ((success_count++))
+        fi
+    fi
+
+    echo "Done"
+}
+
+# Danh sách các lệnh cần chạy
+commands=(
+    "sched"
+    "sched_0"
+    "sched_1"
+    "os_1_singleCPU_mlq"
+    "os_1_singleCPU_mlq_paging"
+    "os_0_mlq_paging"
+    "os_1_mlq_paging"
+    "os_1_mlq_paging_small_1K"
+    "os_1_mlq_paging_small_4K"
+    "os_sc"
+    "os_syscall"
+    "os_syscall_list"
+)
+
+# Tạo thư mục chứa output nếu chưa có
 mkdir -p m_output
 
-echo "Running sched"
-./os sched > m_output/sched.output
-python3 ganttchart.py m_output sched.output
-python3 ganttchart.py output sched.output
-echo "Done"
+# Chạy tất cả các lệnh
+for cmd in "${commands[@]}"; do
+    run_command "$cmd"
+done
 
-echo "Running sched_0"
-./os sched_0 > m_output/sched_0.output
-python3 ganttchart.py m_output sched_0.output
-python3 ganttchart.py output sched_0.output
-echo "Done"
+# In kết quả tổng kết
+echo "====================================="
+echo "Total Success: $success_count"
+echo -e "\e[31mTotal Errors: $error_count\e[0m" 
+echo "====================================="
 
-echo "Running sched_1"
-./os sched_1 > m_output/sched_1.output
-python3 ganttchart.py m_output sched_1.output
-python3 ganttchart.py output sched_1.output
-echo "Done"
-
-echo "Running os_1_singleCPU_mlq"
-./os os_1_singleCPU_mlq > m_output/os_1_singleCPU_mlq.output
-python3 ganttchart.py m_output os_1_singleCPU_mlq.output
-python3 ganttchart.py output os_1_singleCPU_mlq.output
-echo "Done"
-
-echo "Running os_1_singleCPU_mlq_paging"
-./os os_1_singleCPU_mlq_paging > m_output/os_1_singleCPU_mlq_paging.output
-python3 ganttchart.py m_output os_1_singleCPU_mlq_paging.output
-python3 ganttchart.py output os_1_singleCPU_mlq_paging.output
-echo "Done"
-
-echo "Running os_0_mlq_paging"
-./os os_0_mlq_paging > m_output/os_0_mlq_paging.output
-python3 ganttchart.py m_output os_0_mlq_paging.output
-python3 ganttchart.py output os_0_mlq_paging.output
-echo "Done"
-
-echo "Running os_1_mlq_paging"
-./os os_1_mlq_paging > m_output/os_1_mlq_paging.output
-python3 ganttchart.py m_output os_1_mlq_paging.output
-python3 ganttchart.py output os_1_mlq_paging.output
-echo "Done"
-
-echo "Running os_1_mlq_paging_small_1K"
-./os os_1_mlq_paging_small_1K > m_output/os_1_mlq_paging_small_1K.output
-python3 ganttchart.py m_output os_1_mlq_paging_small_1K.output
-python3 ganttchart.py output os_1_mlq_paging_small_1K.output
-echo "Done"
-
-echo "Running os_1_mlq_paging_small_4K"
-./os os_1_mlq_paging_small_4K > m_output/os_1_mlq_paging_small_4K.output
-python3 ganttchart.py m_output os_1_mlq_paging_small_4K.output
-python3 ganttchart.py output os_1_mlq_paging_small_4K.output
-echo "Done"
-
-echo "Running os_sc"
-./os os_sc > m_output/os_sc.output
-python3 ganttchart.py m_output os_sc.output
-python3 ganttchart.py output os_sc.output
-echo "Done"
-
-echo "Running os_syscall"
-./os os_syscall > m_output/os_syscall.output
-python3 ganttchart.py m_output os_syscall.output
-python3 ganttchart.py output os_syscall.output
-echo "Done"
-
-echo "Running os_syscall_list"
-./os os_syscall_list > m_output/os_syscall_list.output
-python3 ganttchart.py m_output os_syscall_list.output
-python3 ganttchart.py output os_syscall_list.output
-echo "Done"
+if [ $error_count -eq 0 ]; then
+    echo -e "\e[32mRun Success\e[0m" 
+    exit 0
+else
+    echo -e "\e[31mRun test failed\e[0m" 
+    exit 1
+fi
