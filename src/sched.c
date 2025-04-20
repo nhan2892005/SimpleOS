@@ -1,4 +1,14 @@
-
+/*
+* Assignment - Operating System
+* CSE - HCMUT
+* Semester 242
+* Group Member: 
+	Nguyễn Phúc Nhân   2312438     Alloc, Free
+	Cao Thành Lộc      2311942     Read - Write
+	Nguyễn Ngọc Ngữ    2312401     Syscall 
+	Phan Đức Nhã       2312410     PutAllTogether, Report 
+*   Đỗ Quang Long      2311896     Scheduler 
+*/
 #include "queue.h"
 #include "sched.h"
 #include <pthread.h>
@@ -45,6 +55,7 @@ void init_scheduler(void) {
  *  based on the priority and our MLQ policy
  *  We implement stateful here using transition technique
  *  State representation   prio = 0 .. MAX_PRIO, curr_slot = 0..(MAX_PRIO - prio)
+! Last modified: 13/04/2025 by Nguyen Quang Long
  */
 struct pcb_t * get_mlq_proc(void) {
 	struct pcb_t * proc = NULL;
@@ -61,22 +72,42 @@ struct pcb_t * get_mlq_proc(void) {
 	return proc;	
 }
 
+/*
+! Helper function to put a process back to run queue
+ * @param proc: process to put back
+! Last modified: 11/04/2025 by Nguyen Quang Long
+*/
 void put_mlq_proc(struct pcb_t * proc) {
 	pthread_mutex_lock(&queue_lock);
 	enqueue(&mlq_ready_queue[proc->prio], proc);
 	pthread_mutex_unlock(&queue_lock);
 }
 
+/*
+! Helper function to add a new process to ready queue
+ * @param proc: process to add
+! Last modified: 11/04/2025 by Nguyen Quang Long
+*/
 void add_mlq_proc(struct pcb_t * proc) {
 	pthread_mutex_lock(&queue_lock);
 	enqueue(&mlq_ready_queue[proc->prio], proc);
 	pthread_mutex_unlock(&queue_lock);	
 }
 
+/*
+! Get a process from ready queue
+ * @return: process from queue
+! Last modified: 11/04/2025 by Nguyen Quang Long
+*/
 struct pcb_t * get_proc(void) {
 	return get_mlq_proc();
 }
 
+/*
+! Put a process back to run queue
+ * @param proc: process to put back
+! Last modified: 11/04/2025 by Nguyen Quang Long
+*/
 void put_proc(struct pcb_t * proc) {
 	proc->ready_queue = &ready_queue;
 	proc->mlq_ready_queue = mlq_ready_queue;
@@ -85,6 +116,11 @@ void put_proc(struct pcb_t * proc) {
 	return put_mlq_proc(proc);
 }
 
+/*
+! Add a new process to ready queue
+ * @param proc: process to add
+! Last modified: 11/04/2025 by Nguyen Quang Long
+*/
 void add_proc(struct pcb_t * proc) {
 	proc->ready_queue = &ready_queue;
 	proc->mlq_ready_queue = mlq_ready_queue;

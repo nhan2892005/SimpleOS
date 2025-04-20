@@ -1,3 +1,14 @@
+/*
+* Assignment - Operating System
+* CSE - HCMUT
+* Semester 242
+* Group Member: 
+	Nguyễn Phúc Nhân   2312438     Alloc, Free
+	Cao Thành Lộc      2311942     Read - Write
+	Nguyễn Ngọc Ngữ    2312401     Syscall 
+	Phan Đức Nhã       2312410     PutAllTogether, Report 
+*   Đỗ Quang Long      2311896     Scheduler 
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include "queue.h"
@@ -18,6 +29,7 @@ int empty(struct queue_t * q) {
 ! Add a new process to queue
 * @param q: queue to add process to
 * @param proc: process to add
+! Last modified: 11/04/2025 by Nguyen Quang Long
 */
 void enqueue(struct queue_t * q, struct pcb_t * proc) {
         // * Check queue is full
@@ -27,6 +39,12 @@ void enqueue(struct queue_t * q, struct pcb_t * proc) {
         q->proc[q->size++] = proc;
 }
 
+/*
+! Get a process from queue
+* @param q: queue to get process from
+* @return: process from queue
+! Last modified: 11/04/2025 by Nguyen Quang Long
+*/
 struct pcb_t * dequeue(struct queue_t * q) {
         // * Check queue is empty
         if (empty(q))
