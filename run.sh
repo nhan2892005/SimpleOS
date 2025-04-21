@@ -17,7 +17,7 @@ run_command() {
     else
         # Kiểm tra lỗi của Python script
         python3 ganttchart.py m_output "$name.output" 2> "m_output/$name.gantt_error"
-        python3 mem_visual.py /mnt/n/Code_space/SimpleOS/m_output/"$name.output" --outdir figures/"$name"
+        python3 mem_visual.py ./m_output/"$name.output" --outdir figures/"$name"
         if [ $? -ne 0 ]; then
             echo -e "\e[31mPython Error: $name\e[0m"  # Màu đỏ
             cat "m_output/$name.gantt_error"
