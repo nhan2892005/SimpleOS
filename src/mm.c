@@ -3,6 +3,17 @@
  * PAGING based Memory Management
  * Memory management unit mm/mm.c
  */
+/*
+* Assignment - Operating System
+* CSE - HCMUT
+* Semester 242
+* Group Member: 
+*  Nguyễn Phúc Nhân   2312438     Alloc, Free
+*  Cao Thành Lộc      2311942     Read - Write
+	 Nguyễn Ngọc Ngữ    2312401     Syscall 
+	 Phan Đức Nhã       2312410     PutAllTogether, Report 
+   Đỗ Quang Long      2311896     Scheduler 
+*/
 
 #include "mm.h"
 #include <stdlib.h>
@@ -136,24 +147,29 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
   int pgit, fpn;
   struct framephy_struct *newfp_str = malloc(sizeof(struct framephy_struct));
 
-  struct framephy_struct *head = NULL;  // Đầu danh sách các frame đã cấp phát
+  struct framephy_struct *head = NULL;
   *frm_lst = NULL;
 
 
   for (pgit = 0; pgit < req_pgnum; pgit++)
   {
+    // * Find a free frame
     if (MEMPHY_get_freefp(caller->mram, &fpn) == 0)
     {
+      // * Successfully obtained a free frame
       newfp_str->fpn = fpn;
-      // Cấp phát một node mới cho frame đã cấp phát
+      // * Allocate a new framephy_struct
       struct framephy_struct *node = malloc(sizeof(struct framephy_struct));
       if (node == NULL){
-        return -1; // Lỗi cấp phát bộ nhớ cho node
+        return -1;
       }
+
+      // * Set the framephy_struct properties
       node->fpn = fpn;
       node->fp_next = NULL;
-        // Nếu cần, có thể gán: 
       node->owner = caller->mm;
+
+      // * Add the new framephy_struct to the list
       if (head == NULL)
       {
         head = node;
@@ -165,10 +181,11 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
       }
     }
     else
-    { // TODO: ERROR CODE of obtaining somes but not enough frames
+    { // * ERROR CODE of obtaining somes but not enough frames
       return -3000;
     }
   }
+  // * Set the head of the list as the output parameter
   *frm_lst = head;
   return req_pgnum;
 }

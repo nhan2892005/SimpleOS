@@ -3,7 +3,17 @@
  * PAGING based Memory Management
  * Memory physical module mm/mm-memphy.c
  */
-
+/*
+* Assignment - Operating System
+* CSE - HCMUT
+* Semester 242
+* Group Member: 
+*  Nguyễn Phúc Nhân   2312438     Alloc, Free
+*  Cao Thành Lộc      2311942     Read - Write
+	Nguyễn Ngọc Ngữ    2312401     Syscall 
+	Phan Đức Nhã       2312410     PutAllTogether, Report 
+   Đỗ Quang Long      2311896     Scheduler 
+*/
 #include "mm.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -162,7 +172,8 @@ int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
 
 int MEMPHY_dump(struct memphy_struct *mp)
 {
-   /*TODO dump memphy contnt mp->storage
+   /*
+   * Dump memphy contnt mp->storage
    *     for tracing the memory content
    */
     if (mp == NULL) {
@@ -174,7 +185,6 @@ int MEMPHY_dump(struct memphy_struct *mp)
     printf("MEMPHY_dump: Dumping memory (max size = %d bytes):\n", mp->maxsz);
     for (int i = 0; i < mp->maxsz; i++) {
         if (mp->storage[i] != 0) {
-            // In ra địa chỉ và giá trị dưới dạng hex
             printf("BYTE %08x: %d\n", i, mp->storage[i]);
             printf("Addr %05d: 0x%02x\n", i, (unsigned char)mp->storage[i]);
         }

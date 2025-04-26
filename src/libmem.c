@@ -19,11 +19,11 @@
 * CSE - HCMUT
 * Semester 242
 * Group Member: 
-* Nguyễn Phúc Nhân   2312438     Alloc, Free
-* Cao Thành Lộc      2311942     Read - Write
-	Nguyễn Ngọc Ngữ    2312401     Syscall 
-	Phan Đức Nhã       2312410     PutAllTogether, Report 
-  Đỗ Quang Long      2311896     Scheduler 
+*  Nguyễn Phúc Nhân   2312438     Alloc, Free
+*  Cao Thành Lộc      2311942     Read - Write
+	 Nguyễn Ngọc Ngữ    2312401     Syscall 
+	 Phan Đức Nhã       2312410     PutAllTogether, Report 
+   Đỗ Quang Long      2311896     Scheduler 
 */
 
 #include "string.h"
@@ -108,7 +108,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
       if (cur_vma == NULL)
       {
           pthread_mutex_unlock(&mmvm_lock);
-          return -1;  // Không tìm thấy VM area
+          return -1;   // Can not find the VM area
       }
       
       // * Extend the VM area
@@ -152,7 +152,6 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
   if(rgid < 0 || rgid > PAGING_MAX_SYMTBL_SZ || caller == NULL)
     return -1;
 
-  /* TODO: Manage the collect freed region to freerg_list */
   // * Get the allocated region from the symbol table
   struct vm_rg_struct allocated_region = caller->mm->symrgtbl[rgid];
     
@@ -252,36 +251,33 @@ int libfree(struct pcb_t *proc, uint32_t reg_index)
  *@pagenum: PGN
  *@framenum: return FPN
  *@caller: caller
-! Last modified: 14/04/2025 by Nguyen Phuc Nhan
+! Last modified: 14/04/2025 by Cao Thanh Loc
  */
 int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 {
   uint32_t pte = mm->pgd[pgn];
 
   if (!PAGING_PAGE_PRESENT(pte))
-  { /* Page is not online, make it actively living */
-    /*int vicpgn, swpfpn*/; 
-    // Page fault: trang chưa được nạp vào RAM.
+  { 
     int new_fpn;
         
-    // Cố gắng lấy một khung trang trống từ MEMRAM
+    // * Get a free frame page number (FPN) from the memory physical
     if (MEMPHY_get_freefp(caller->mram, &new_fpn) != 0)
     {
-        // Nếu không còn khung trang trống, chọn một trang nạn nhân từ danh sách FIFO
+        // * Find a victim page to swap out
         int victim_pgn;
         if (find_victim_page(mm, &victim_pgn) != 0)
         {
             return -1;  // Không tìm thấy trang nạn nhân
         }
-        // Giả sử victim page được dùng để giải phóng khung trang
+        // * Swap out the victim page
         new_fpn = PAGING_FPN(mm->pgd[victim_pgn]);
-        // (Ở đây ta có thể giả lập swap-out của victim và swap-in của trang cần truy cập)
     }
     
-    // Cập nhật bảng trang: đánh dấu trang có mặt và gán frame mới
+    // * Swap the page from MEMSWAP to MEMRAM
     pte_set_fpn(&mm->pgd[pgn], new_fpn);
 
-    // Theo dõi cho mục đích thay thế trang: thêm trang vừa được nạp vào danh sách FIFO
+    // * Update the page table entry
     enlist_pgn_node(&caller->mm->fifo_pgn, pgn);
   }
 
@@ -290,11 +286,12 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
   return 0;
 }
 
-/*pg_getval - read value at given offset
+/*
+ *pg_getval - read value at given offset
  *@mm: memory region
  *@addr: virtual address to acess
  *@value: value
- *
+! Last modified: 14/04/2025 by Cao Thanh Loc
  */
 int pg_getval(struct mm_struct *mm, int addr, BYTE *data, struct pcb_t *caller)
 {
@@ -302,7 +299,7 @@ int pg_getval(struct mm_struct *mm, int addr, BYTE *data, struct pcb_t *caller)
   int off = PAGING_OFFST(addr);
   int fpn;
 
-  /* Get the page to MEMRAM, swap from MEMSWAP if needed */
+  // * Get the page to MEMRAM, swap from MEMSWAP if needed
   if (pg_getpage(mm, pgn, &fpn, caller) != 0)
     return -1; /* invalid page access */
 
@@ -312,11 +309,12 @@ int pg_getval(struct mm_struct *mm, int addr, BYTE *data, struct pcb_t *caller)
   return ret;
 }
 
-/*pg_setval - write value to given offset
+/*
+ *pg_setval - write value to given offset
  *@mm: memory region
  *@addr: virtual address to acess
  *@value: value
- *
+! Last modified: 14/04/2025 by Cao Thanh Loc
  */
 int pg_setval(struct mm_struct *mm, int addr, BYTE value, struct pcb_t *caller)
 {
@@ -324,7 +322,7 @@ int pg_setval(struct mm_struct *mm, int addr, BYTE value, struct pcb_t *caller)
   int off = PAGING_OFFST(addr);
   int fpn;
 
-  /* Get the page to MEMRAM, swap from MEMSWAP if needed */
+  // * Get the page to MEMRAM, swap from MEMSWAP if needed
   if (pg_getpage(mm, pgn, &fpn, caller) != 0)
     return -1; /* invalid page access */
 
@@ -335,13 +333,14 @@ int pg_setval(struct mm_struct *mm, int addr, BYTE value, struct pcb_t *caller)
   return ret;
 }
 
-/*__read - read value in region memory
+/*
+ *__read - read value in region memory
  *@caller: caller
  *@vmaid: ID vm area to alloc memory region
  *@offset: offset to acess in memory region
  *@rgid: memory region ID (used to identify variable in symbole table)
- *@size: allocated size
- *
+  *@size: allocated size
+! Last modified: 14/04/2025 by Cao Thanh Loc
  */
 int __read(struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
 {
@@ -364,22 +363,22 @@ int libread(
   BYTE data;
   int val = __read(proc, 0, source, offset, &data);
 
-  /* Update result of reading action:
-   * Gán giá trị dữ liệu đọc được (data) vào biến destination.
+  /* 
+   * Update result of reading action:
+   * Assign the value read from memory to the destination register
    */
   if (val == 0) {
     *destination = (uint32_t)data;
 }
 
-  /* TODO update result of reading action*/
-  //destination 
+  // * Dump the physical memory after reading
   pthread_mutex_lock(&log_msg);
   printf("===== PHYSICAL MEMORY AFTER READING =====\n");
   printf("destination=%d\n", *destination);
 #ifdef IODUMP
   printf("read region=%d offset=%d value=%d\n", source, offset, data);
 #ifdef PAGETBL_DUMP
-  print_pgtbl(proc, 0, -1); //print max TBL
+  print_pgtbl(proc, 0, -1);
 #endif
   MEMPHY_dump(proc->mram);
 #endif
@@ -422,10 +421,8 @@ int libwrite(
   printf("===== PHYSICAL MEMORY AFTER WRITING =====\n");
 #ifdef IODUMP
   printf("write region=%d offset=%d value=%d\n", destination, offset, data);
-  //pthread_mutex_unlock(&log_msg);
 #ifdef PAGETBL_DUMP
-  //pthread_mutex_lock(&log_msg);
-  print_pgtbl(proc, 0, -1); //print max TBL
+  print_pgtbl(proc, 0, -1);
 #endif
   MEMPHY_dump(proc->mram);
 #endif
@@ -463,36 +460,38 @@ int free_pcb_memph(struct pcb_t *caller)
   return 0;
 }
 
-
-/*find_victim_page - find victim page
+/*
+ *find_victim_page - find victim page
  *@caller: caller
  *@pgn: return page number
- *
- */
+! Last modified: 14/04/2025 by Nguyen Phuc Nhan
+*/
 int find_victim_page(struct mm_struct *mm, int *retpgn)
 {
   struct pgn_t *pg = mm->fifo_pgn;
 
-  /* TODO: Implement the theorical mechanism to find the victim page */
+  // * Check if the FIFO list is empty
   if (pg == NULL)
-        return -1;  // Không có trang nào trong danh sách
+        return -1;
     
-  *retpgn = pg->pgn;  // Chọn trang đầu tiên trong danh sách làm nạn nhân
+  *retpgn = pg->pgn;  // * Set the return page number
     
-    // Loại bỏ node đầu tiên khỏi danh sách FIFO
+  // * Remove the first page from the FIFO list
   mm->fifo_pgn = pg->pg_next;
 
+  // * Free the memory allocated for the removed page
   free(pg);
 
   return 0;
 }
 
-/*get_free_vmrg_area - get a free vm region
+/*
+ *get_free_vmrg_area - get a free vm region
  *@caller: caller
  *@vmaid: ID vm area to alloc memory region
  *@size: allocated size
- *
- */
+! Last modified: 14/04/2025 by Nguyen Phuc Nhan
+*/
 int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_struct *newrg)
 {
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
@@ -501,25 +500,25 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
 
   struct vm_rg_struct *rgit = cur_vma->vm_freerg_list;
   struct vm_rg_struct **pp = &cur_vma->vm_freerg_list;
-  // Khởi tạo newrg chưa được thiết lập
+
+  // * Initialize newrg
   newrg->rg_start = newrg->rg_end = -1;
   newrg->rg_next = NULL;
 
   if (rgit == NULL)
     return -1;
 
-  /* Probe unintialized newrg */
   newrg->rg_start = newrg->rg_end = -1;
 
-// Duyệt danh sách free region để tìm một vùng đủ lớn
+  // * Traverse the free region list to find a suitable region
   while (*pp != NULL) {
     int region_size = (*pp)->rg_end - (*pp)->rg_start;
     if (region_size >= size) {
-        // Cấp phát phần đầu của free region cho newrg
+        // * Found a free region that is large enough
         newrg->rg_start = (*pp)->rg_start;
         newrg->rg_end = (*pp)->rg_start + size;
         
-        // Cập nhật free region: nếu vừa đủ, loại bỏ node; nếu lớn hơn, cập nhật rg_start
+        // * Update the free region list
         if (region_size == size) {
             struct vm_rg_struct *temp = *pp;
             *pp = (*pp)->rg_next;
@@ -532,7 +531,7 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
     pp = &((*pp)->rg_next);
   }
 
-  // Không tìm thấy free region đủ lớn
+  // * No suitable free region found
   return -1;
 }
 
