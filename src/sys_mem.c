@@ -12,7 +12,17 @@
 #include "libmem.h"
 #include "mm.h"
 
-//typedef char BYTE;
+/*
+* Assignment - Operating System
+* CSE - HCMUT
+* Semester 242
+* Group Member: 
+     Nguyễn Phúc Nhân   2312438     Alloc, Free
+     Cao Thành Lộc      2311942     Read - Write
+*    Nguyễn Ngọc Ngữ    2312401     Syscall 
+	  Phan Đức Nhã       2312410     PutAllTogether, Report 
+     Đỗ Quang Long      2311896     Scheduler 
+*/
 
 int __sys_memmap(struct pcb_t *caller, struct sc_regs* regs)
 {
