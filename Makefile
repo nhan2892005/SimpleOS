@@ -115,3 +115,9 @@ clean: clean_test
 clean_test:
 	rm -f $(TEST_MEM_EXE)
 	rm -rf $(TEST_OBJ_DIR)
+	rm -f $(TEST_QUEUE_EXE)
+	rm -f $(TEST_SCHED_EXE)
+# remove log
+	rm -f log_mem.txt
+	rm -f log_queue.txt
+	rm -f log_schedule.txt
