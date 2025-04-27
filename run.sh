@@ -35,6 +35,8 @@ commands=(
     "sched"
     "sched_0"
     "sched_1"
+    "sched_3"
+    "sched_4"
     "os_1_singleCPU_mlq"
     "os_1_singleCPU_mlq_paging"
     "os_0_mlq_paging"
