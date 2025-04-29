@@ -1,6 +1,6 @@
-20 3
+20 5
 alloc 300 7
 syscall 17 2 0 600
 syscall 17 5 400 0 120
-syscall 17 4 0 120
+read 0 400 20
 syscall 17 3 0 7
